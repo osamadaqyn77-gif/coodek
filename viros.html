@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار فيروسات الحاسوب - المهندس محمود حامد قريش</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #dc2626;
+            --secondary-color: #ef4444;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+        header { background: white; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .progress-container { max-width: 1000px; margin: 0.5rem auto 0; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; }
+        #progress-bar { height: 100%; background: var(--primary-color); width: 0%; transition: width 0.3s ease; }
+        main { flex: 1; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; width: 100%; display: grid; grid-template-columns: 1fr 300px; gap: 2rem; }
+        @media (max-width: 850px) { main { grid-template-columns: 1fr; } .sidebar { order: 2; } }
+        .quiz-card { background: var(--card-bg); padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
+        .question-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-weight: 700; color: var(--primary-color); }
+        .question-text { font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; line-height: 1.8; }
+        .options-grid { display: grid; gap: 1rem; }
+        .option-btn { background: white; border: 2px solid var(--border-color); padding: 1rem 1.5rem; border-radius: 0.75rem; cursor: pointer; text-align: right; font-size: 1.1rem; transition: all 0.2s; display: flex; align-items: center; gap: 1rem; position: relative; }
+        .option-btn:hover:not(:disabled) { border-color: var(--secondary-color); background: #fef2f2; }
+        .option-btn.selected { border-color: var(--primary-color); background: #fef2f2; }
+        .option-btn.correct { border-color: var(--success-color); background: #ecfdf5; color: #065f46; }
+        .option-btn.wrong { border-color: var(--error-color); background: #fef2f2; color: #991b1b; }
+        .option-badge { width: 30px; height: 30px; background: var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+        .option-btn.correct .option-badge { background: var(--success-color); color: white; }
+        .option-btn.wrong .option-badge { background: var(--error-color); color: white; }
+        .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+        .stats-card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+        .stat-item { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-weight: 500; }
+        .stat-value { font-weight: 700; }
+        .stat-correct { color: var(--success-color); }
+        .stat-wrong { color: var(--error-color); }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .nav-btn { aspect-ratio: 1; border: 1px solid var(--border-color); background: white; border-radius: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+        .nav-btn:hover { background: var(--bg-color); }
+        .nav-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .nav-btn.answered-correct { background: var(--success-color); color: white; border-color: var(--success-color); }
+        .nav-btn.answered-wrong { background: var(--error-color); color: white; border-color: var(--error-color); }
+        .controls { display: flex; justify-content: space-between; margin-top: 2rem; gap: 1rem; }
+        .btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: #b91c1c; }
+        .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-outline:hover { background: var(--bg-color); }
+        .btn-danger { background: var(--error-color); color: white; }
+        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+        .modal { background: white; padding: 2.5rem; border-radius: 1.5rem; max-width: 500px; width: 100%; text-align: center; }
+        .input-group { margin: 1.5rem 0; text-align: right; }
+        .input-group label { display: block; margin-bottom: 0.5rem; font-weight: 700; }
+        input[type="text"], select { width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 0.5rem; font-size: 1rem; outline: none; }
+        footer { text-align: center; padding: 2rem; color: var(--text-muted); font-weight: 600; border-top: 1px solid var(--border-color); background: white; margin-top: auto; }
+        .hidden { display: none !important; }
+        .kb-hints { margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: center; gap: 1rem; }
+        .kb-key { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <h2 id="quiz-title">اختبار فيروسات الحاسوب</h2>
+            <a href="index.html" style="display:block;margin-top:15px;padding:12px;background:#007bff;color:white;text-align:center;border-radius:10px;text-decoration:none;">🚀 الانتقال إلى الصفحة الرئيسية</a>
+            <div id="timer-display" class="stat-value" style="font-size: 1.2rem; color: var(--error-color);"></div>
+        </div>
+        <div class="progress-container"><div id="progress-bar"></div></div>
+    </header>
+
+    <main id="main-content" class="hidden">
+        <div class="content-area">
+            <div class="quiz-card">
+                <div class="question-header"><span id="q-type"></span><span id="q-number"></span></div>
+                <div id="question-text" class="question-text"></div>
+                <div id="options-container" class="options-grid"></div>
+                <div class="controls">
+                    <button id="prev-btn" class="btn btn-outline">السابق (←)</button>
+                    <button id="reset-btn" class="btn btn-danger">إعادة الاختبار</button>
+                    <button id="next-btn" class="btn btn-primary">التالي (→)</button>
+                    <button id="finish-btn" class="btn btn-success hidden" style="background: var(--success-color); color: white;">إنهاء الاختبار</button>
+                </div>
+                <div class="kb-hints">
+                    <span><span class="kb-key">←</span> السابق</span>
+                    <span><span class="kb-key">→</span> التالي</span>
+                    <span><span class="kb-key">1-4</span> للإجابة</span>
+                </div>
+            </div>
+        </div>
+        <aside class="sidebar">
+            <div class="stats-card">
+                <div class="stat-item">الطالب: <span id="display-name" class="stat-value"></span></div>
+                <div class="stat-item">الإجابات الصحيحة: <span id="correct-count" class="stat-value stat-correct">0</span></div>
+                <div class="stat-item">الإجابات الخاطئة: <span id="wrong-count" class="stat-value stat-wrong">0</span></div>
+                <div class="stat-item">الأسئلة المتبقية: <span id="remaining-count" class="stat-value">0</span></div>
+            </div>
+            <div class="stats-card">
+                <div style="margin-bottom: 1rem; font-weight: 700;">خريطة الأسئلة</div>
+                <div id="nav-grid" class="nav-grid"></div>
+            </div>
+        </aside>
+    </main>
+
+    <div id="start-screen" class="overlay">
+        <div class="modal">
+            <h1 style="color: var(--primary-color); margin-bottom: 1rem;">أهلاً بك في الاختبار</h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">اختبار شامل في مادة فيروسات الحاسوب (60 سؤالاً)</p>
+            <div class="input-group">
+                <label>اسم الطالب:</label>
+                <input type="text" id="student-name" placeholder="أدخل اسمك هنا...">
+            </div>
+            <div class="input-group">
+                <label>مدة الاختبار:</label>
+                <select id="quiz-duration">
+                    <option value="0">بدون مؤقت</option>
+                    <option value="15">15 دقيقة</option>
+                    <option value="30">30 دقيقة</option>
+                    <option value="60">ساعة واحدة</option>
+                </select>
+            </div>
+            <button id="start-btn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">ابدأ الاختبار الآن</button>
+            <a href="index.html" style="display:block;margin-top:15px;padding:12px;background:#007bff;color:white;text-align:center;border-radius:10px;text-decoration:none;">🚀 الانتقال إلى الصفحة الرئيسية</a>
+            <div id="resume-msg" class="hidden" style="margin-top: 1.5rem; padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; color: #991b1b; font-weight: bold; cursor: pointer;">
+                لديك اختبار سابق غير مكتمل، انقر هنا للمتابعة من حيث توقفت
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="overlay hidden">
+        <div class="modal" style="max-width: 600px;">
+            <h2 style="color: var(--primary-color);">نتيجة الاختبار</h2>
+            <div id="result-content" style="margin: 2rem 0; font-size: 1.2rem;"></div>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button onclick="location.reload()" class="btn btn-primary">إعادة الاختبار</button>
+                <button onclick="closeResult()" class="btn btn-outline">مراجعة الإجابات</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>تطوير المهندس محمود حامد قريش</footer>
+
+    <script>
+        const rawQuestions = [
+            { type: 'tf', q: "الفيروس هو برنامج أو جزء من الشفرة يدخل إلى الحاسب الآلي بهدف التخريب.", a: "صح" },
+            { type: 'tf', q: "تتميز الفيروسات بعدم قدرتها على نسخ نفسها إلى نسخ كثيرة.", a: "خطأ" },
+            { type: 'tf', q: "تستطيع الفيروسات الانتقال من حاسب إلى حاسب آخر.", a: "صح" },
+            { type: 'tf', q: "يمكن للفيروسات أن تنشأ من تلقاء نفسها دون تدخل خارجي.", a: "خطأ" },
+            { type: 'tf', q: "يربط الفيروس نفسه ببرنامج آخر يسمى البرنامج الحاضن (host).", a: "صح" },
+            { type: 'tf', q: "لا تمتلك الفيروسات القدرة على الاختفاء وتغطية محتوياتها.", a: "خطأ" },
+            { type: 'tf', q: "يتكون برنامج الفيروس بشكل عام من أربعة أجزاء رئيسية.", a: "صح" },
+            { type: 'tf', q: "آلية التناسخ (The Replication Mechanism) هي الجزء الذي يسمح للفيروس بأن ينسخ نفسه.", a: "صح" },
+            { type: 'tf', q: "الجزء الذي يخفي الفيروس عن الاكتشاف يسمى آلية التنشيط.", a: "خطأ" },
+            { type: 'tf', q: "فيروس (Michelangelo) ينشط في السادس من آذار من كل عام.", a: "صح" },
+            { type: 'tf', q: "آلية التنفيذ (The Payload Mechanism) هي الجزء الذي ينفذه الفيروس عندما يتم تنشيطه.", a: "صح" },
+            { type: 'tf', q: "يُنصح بعدم الاحتفاظ بنسخ احتياطية من البرامج للوقاية من الفيروسات.", a: "خطأ" },
+            { type: 'tf', q: "يجب إجراء فحص على البرامج المحملة من الإنترنت قبل تشغيلها.", a: "صح" },
+            { type: 'tf', q: "استخدام برمجيات الجدار الناري لا يعتبر وسيلة للوقاية من الفيروسات.", a: "خطأ" },
+            { type: 'tf', q: "تعتبر الشبكة العنكبوتية (الإنترنت) أهم طرق انتقال الفيروسات في الوقت الحالي.", a: "صح" },
+            { type: 'tf', q: "لا تنتقل الفيروسات عبر رسائل البريد الإلكتروني مجهولة المصدر.", a: "خطأ" },
+            { type: 'tf', q: "تعتبر ذواكر الفلاش والأقراص الضوئية من وسائط التخزين التي تنقل الفيروسات.", a: "صح" },
+            { type: 'tf', q: "الملفات المضغوطة (zip) لا يمكن أن تنتقل الفيروسات من خلالها.", a: "خطأ" },
+            { type: 'tf', q: "فيروس العدوى المباشر (Direct Infector) يعتبر من الأنواع واسعة الانتشار جداً.", a: "خطأ" },
+            { type: 'tf', q: "فيروس العدوى المباشر يقوم بتحميل نفسه إلى الذاكرة وتشغيله عند إصابة أحد الملفات.", a: "صح" },
+            { type: 'tf', q: "فيروس العدوى غير المباشر (Indirect Infector) يستقر في ذاكرة الحاسوب.", a: "صح" },
+            { type: 'tf', q: "في فيروس العدوى غير المباشر، يتم إصابة كل برنامج يتم تحميله إلى الذاكرة.", a: "صح" },
+            { type: 'tf', q: "يستمر نشاط فيروس العدوى غير المباشر حتى بعد إعادة تشغيل الحاسوب مباشرة دون قطع الكهرباء.", a: "خطأ" },
+            { type: 'tf', q: "سمي الفيروس بهذا الاسم لأنه يشبه الكائنات الحية المتطفلة في بعض صفاتها.", a: "صح" },
+            { type: 'tf', q: "الفيروسات تتستر دائماً خلف ملف آخر وتأخذ زمام السيطرة على البرنامج المصاب.", a: "صح" },
+            { type: 'tf', q: "لا يمكن للفيروسات التواجد في أماكن أساسية في الحاسب مثل الذاكرة.", a: "خطأ" },
+            { type: 'tf', q: "تواجد الفيروس في الذاكرة يزيد عدد الملفات المصابة كلما طال وقت اكتشافه.", a: "صح" },
+            { type: 'tf', q: "آلية التنشيط تسمح للفيروس بالانتشار قبل أن يُعرف وجوده.", a: "صح" },
+            { type: 'tf', q: "من خواص الفيروسات أنها تستطيع التخفي في عدة ملفات.", a: "صح" },
+            { type: 'tf', q: "آلية الحماية (The Protection Mechanism) هي الجزء المسؤول عن نسخ الفيروس لنفسه.", a: "خطأ" },
+            { type: 'mc', q: "يُعرف الفيروس بأنه شفرة تدخل الحاسب بهدف:", options: ["تسريع الجهاز.", "التخريب.", "توفير مساحة.", "تحديث النظام."], a: "التخريب." },
+            { type: 'mc', q: "البرنامج الذي يربط الفيروس نفسه به يسمى:", options: ["الخادم.", "الحاضن (host).", "المشغل.", "المبرمج."], a: "الحاضن (host)." },
+            { type: 'mc', q: "أي مما يلي ليس من خواص الفيروسات؟", options: ["القدرة على التناسخ.", "الانتقال من حاسب لآخر.", "التخفي في الملفات.", "تنشأ من ذاتها."], a: "تنشأ من ذاتها." },
+            { type: 'mc', q: "الجزء المسؤول عن نسخ الفيروس لنفسه هو:", options: ["آلية التناسخ.", "آلية التخفي.", "آلية التنشيط.", "آلية التنفيذ."], a: "آلية التناسخ." },
+            { type: 'mc', q: "آلية التخفي (The Protection Mechanism) تعمل على:", options: ["زيادة سرعة الفيروس.", "إخفاء الفيروس عن الاكتشاف.", "مسح البيانات فوراً.", "تغيير تاريخ الحاسوب."], a: "إخفاء الفيروس عن الاكتشاف." },
+            { type: 'mc', q: "فيروس (Michelangelo) يستخدم توقيت الساعة كجزء من آلية:", options: ["التناسخ.", "التنشيط.", "الحماية.", "التخزين."], a: "التنشيط." },
+            { type: 'mc', q: "الجزء الذي ينفذه الفيروس فعلياً عند نشاطه هو:", options: ["آلية التناسخ.", "آلية التنشيط.", "آلية التنفيذ (Payload).", "آلية الحماية."], a: "آلية التنفيذ (Payload)." },
+            { type: 'mc', q: "من طرق الوقاية من الفيروسات المذكورة في المصدر:", options: ["زيادة إضاءة الشاشة.", "استخدام برمجيات الجدار الناري.", "إغلاق الحاسب كل ساعة.", "تغيير لوحة المفاتيح."], a: "استخدام برمجيات الجدار الناري." },
+            { type: 'mc', q: "يجب الحذر من رسائل البريد الإلكتروني:", options: ["المعروفة المصدر.", "غير معروفة المصدر.", "التي تحتوي على نصوص فقط.", "المرسلة من الأصدقاء."], a: "غير معروفة المصدر." },
+            { type: 'mc', q: "الوسيلة التي تعتبر حالياً سهلة لانتقال الفيروسات هي:", options: ["الطابعات.", "الشبكة العنكبوتية (الإنترنت).", "الماسح الضوئي.", "السماعات."], a: "الشبكة العنكبوتية (الإنترنت)." },
+            { type: 'mc', q: "تأتي وسائط التخزين في المرتبة ........ من حيث طرق انتقال الفيروسات:", options: ["الأولى.", "الثانية.", "الثالثة.", "الأخيرة."], a: "الثانية." },
+            { type: 'mc', q: "من أمثلة وسائط التخزين التي تنقل الفيروسات وذكرت في المصدر:", options: ["الورق المقوى.", "ذواكر الفلاش.", "كابلات الشاشة.", "بطاريات الحاسوب."], a: "ذواكر الفلاش." },
+            { type: 'mc', q: "فيروس العدوى المباشر (Direct Infector) يتميز بأنه:", options: ["واسع الانتشار جداً.", "قليل الانتشار.", "لا يصيب الملفات.", "يسرع النظام."], a: "قليل الانتشار." },
+            { type: 'mc', q: "الفيروس الذي يستقر في ذاكرة الحاسوب ويصيب كل برنامج يتم تحميله هو:", options: ["فيروس العدوى المباشر.", "فيروس العدوى غير المباشر.", "الفيروس النصي.", "فيروس الساعة."], a: "فيروس العدوى غير المباشر." },
+            { type: 'mc', q: "ينتهي عمل فيروس العدوى غير المباشر في الذاكرة عند:", options: ["فتح ملف وورد.", "قطع التغذية الكهربائية.", "تحريك الفأرة.", "توصيل الإنترنت."], a: "قطع التغذية الكهربائية." },
+            { type: 'mc', q: "يشبه الفيروس الكائنات الحية المتطفلة في أنه:", options: ["يتنفس.", "يتستر خلف ملف آخر.", "يموت بعد يومين.", "يحتاج للماء."], a: "يتستر خلف ملف آخر." },
+            { type: 'mc', q: "عندما يتم تشغيل برنامج مصاب، فإن الفيروس:", options: ["يتوقف عن العمل.", "يتم تشغيله أيضاً مع البرنامج.", "يقوم بحذف نفسه.", "يغلق الشاشة."], a: "يتم تشغيله أيضاً مع البرنامج." },
+            { type: 'mc', q: "تواجد الفيروس في الذاكرة يؤدي إلى:", options: ["حماية الذاكرة.", "زيادة عدد الملفات المصابة.", "تقليل حجم الملفات.", "تسريع المعالج."], a: "زيادة عدد الملفات المصابة." },
+            { type: 'mc', q: "آلية التناسخ تسمى باللغة الإنجليزية:", options: ["The Trigger Mechanism.", "The Replication Mechanism.", "The Protection Mechanism.", "The Payload Mechanism."], a: "The Replication Mechanism." },
+            { type: 'mc', q: "آلية التنشيط تسمى باللغة الإنجليزية:", options: ["The Trigger Mechanism.", "The Replication Mechanism.", "The Protection Mechanism.", "The Payload Mechanism."], a: "The Trigger Mechanism." },
+            { type: 'mc', q: "آلية التخفي تسمى باللغة الإنجليزية:", options: ["The Trigger Mechanism.", "The Replication Mechanism.", "The Protection Mechanism.", "The Payload Mechanism."], a: "The Protection Mechanism." },
+            { type: 'mc', q: "آلية التنفيذ تسمى باللغة الإنجليزية:", options: ["The Trigger Mechanism.", "The Replication Mechanism.", "The Protection Mechanism.", "The Payload Mechanism."], a: "The Payload Mechanism." },
+            { type: 'mc', q: "يُنصح بتنزيل البرامج والألعاب من:", options: ["أي موقع يظهر في البحث.", "المواقع والمصادر الموثوقة.", "منتديات غير معروفة.", "رسائل البريد المجهولة."], a: "المواقع والمصادر الموثوقة." },
+            { type: 'mc', q: "أي من الملفات التالية ذكرت في المصدر كأوعية لانتقال الفيروسات؟", options: ["الملفات الورقية.", "الملفات المضغوطة (zip).", "ملفات الراديو.", "ملفات التلفاز."], a: "الملفات المضغوطة (zip)." },
+            { type: 'mc', q: "الفيروسات لا يمكنها أن:", options: ["تنسخ نفسها.", "تنشأ من تلقاء نفسها.", "تنتقل عبر الشبكة.", "تختبئ في الملفات."], a: "تنشأ من تلقاء نفسها." },
+            { type: 'mc', q: "الهدف الرئيسي من آلية التخفي هو:", options: ["مسح الملفات بسرعة.", "منع اكتشاف الفيروس.", "تكرار الفيروس.", "تشغيل الفيروس في تاريخ محدد."], a: "منع اكتشاف الفيروس." },
+            { type: 'mc', q: "فيروس العدوى المباشر ينشط في:", options: ["ملف واحد أو أكثر عند تنفيذ البرنامج المصاب.", "الذاكرة بشكل دائم.", "لوحة التحكم فقط.", "الطابعة فقط."], a: "ملف واحد أو أكثر عند تنفيذ البرنامج المصاب." },
+            { type: 'mc', q: "سمي الفيروس (Virus) بهذا الاسم بسبب تشابهه مع:", options: ["البرامج المكتبية.", "الكائنات الحية المتطفلة.", "الأجهزة الكهربائية.", "القطع المادية للحاسوب."], a: "الكائنات الحية المتطفلة." },
+            { type: 'mc', q: "لضمان عدم فقدان البيانات بسبب الفيروسات يجب:", options: ["الاحتفاظ بنسخ احتياطية.", "تغيير كلمة السر يومياً.", "مسح الذاكرة كل ساعة.", "عدم استخدام الفأرة."], a: "الاحتفاظ بنسخ احتياطية." },
+            { type: 'mc', q: "آلية التنشيط تسمح للفيروس بالانتشار قبل:", options: ["أن يتم تحميله.", "أن يعرف وجوده.", "أن يغلق الحاسوب.", "أن يتصل بالإنترنت."], a: "أن يعرف وجوده." }
+        ];
+
+        let questions = []; let currentIndex = 0; let userAnswers = {}; let studentName = ""; let timer = null; let timeLeft = 0; let isFinished = false;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initQuiz() {
+            const tf = rawQuestions.filter(q => q.type === 'tf');
+            const mc = rawQuestions.filter(q => q.type === 'mc');
+            questions = [...shuffle(tf), ...shuffle(mc)];
+            questions.forEach(q => {
+                if (q.type === 'mc') q.shuffledOptions = shuffle([...q.options]);
+                else q.shuffledOptions = ["صح", "خطأ"];
+            });
+        }
+
+        function checkResume() {
+            const saved = localStorage.getItem('virus_quiz_save_v2');
+            if (saved) {
+                document.getElementById('resume-msg').classList.remove('hidden');
+                document.getElementById('resume-msg').onclick = () => {
+                    const data = JSON.parse(saved);
+                    studentName = data.name;
+                    userAnswers = data.answers;
+                    timeLeft = data.timeLeft;
+                    questions = data.questions;
+                    currentIndex = data.currentIndex || 0;
+                    startQuiz(true);
+                };
+            }
+        }
+
+        function startQuiz(isResume = false) {
+            if (!isResume) {
+                studentName = document.getElementById('student-name').value.trim();
+                if (!studentName) { alert("يرجى إدخال اسمك للبدء"); return; }
+                const duration = parseInt(document.getElementById('quiz-duration').value);
+                timeLeft = duration * 60;
+                initQuiz();
+            }
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('display-name').textContent = studentName;
+            if (timeLeft > 0) startTimer();
+            updateStats();
+            renderNavGrid();
+            showQuestion(currentIndex);
+        }
+
+        function startTimer() {
+            if (timer) clearInterval(timer);
+            timer = setInterval(() => {
+                if (timeLeft <= 0) { clearInterval(timer); finishQuiz(true); return; }
+                timeLeft--;
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                document.getElementById('timer-display').textContent = `الوقت المتبقي: ${mins}:${secs.toString().padStart(2, '0')}`;
+                saveProgress();
+            }, 1000);
+        }
+
+        function saveProgress() {
+            if (isFinished) return;
+            const data = { name: studentName, answers: userAnswers, timeLeft: timeLeft, questions: questions, currentIndex: currentIndex };
+            localStorage.setItem('virus_quiz_save_v2', JSON.stringify(data));
+        }
+
+        function showQuestion(index) {
+            currentIndex = index;
+            const q = questions[index];
+            document.getElementById('q-number').textContent = `سؤال ${index + 1} من ${questions.length}`;
+            document.getElementById('q-type').textContent = q.type === 'tf' ? "صح أم خطأ" : "اختيار من متعدد";
+            document.getElementById('question-text').textContent = q.q;
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.shuffledOptions.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                if (userAnswers[index] === opt) btn.classList.add('selected');
+                if (userAnswers[index] !== undefined) {
+                    if (opt === q.a) btn.classList.add('correct');
+                    else if (userAnswers[index] === opt) btn.classList.add('wrong');
+                    btn.disabled = true;
+                }
+                btn.innerHTML = `<span class="option-badge">${i + 1}</span> <span>${opt}</span>`;
+                btn.onclick = () => handleAnswer(opt);
+                container.appendChild(btn);
+            });
+            document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === index));
+            const progress = ((Object.keys(userAnswers).length) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('prev-btn').disabled = index === 0;
+            document.getElementById('next-btn').classList.toggle('hidden', index === questions.length - 1);
+            document.getElementById('finish-btn').classList.toggle('hidden', index !== questions.length - 1);
+            saveProgress();
+        }
+
+        function handleAnswer(selected) {
+            if (userAnswers[currentIndex] !== undefined || isFinished) return;
+            userAnswers[currentIndex] = selected;
+            updateStats();
+            showQuestion(currentIndex);
+            if (currentIndex < questions.length - 1) {
+                setTimeout(() => { if (currentIndex < questions.length - 1) showQuestion(currentIndex + 1); }, 1000);
+            }
+        }
+
+        function updateStats() {
+            let correct = 0; let wrong = 0;
+            Object.keys(userAnswers).forEach(idx => { if (userAnswers[idx] === questions[idx].a) correct++; else wrong++; });
+            document.getElementById('correct-count').textContent = correct;
+            document.getElementById('wrong-count').textContent = wrong;
+            document.getElementById('remaining-count').textContent = questions.length - Object.keys(userAnswers).length;
+            renderNavGrid();
+        }
+
+        function renderNavGrid() {
+            const grid = document.getElementById('nav-grid');
+            grid.innerHTML = '';
+            questions.forEach((_, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'nav-btn';
+                btn.textContent = i + 1;
+                if (userAnswers[i] !== undefined) {
+                    if (userAnswers[i] === questions[i].a) btn.classList.add('answered-correct');
+                    else btn.classList.add('answered-wrong');
+                }
+                if (i === currentIndex) btn.classList.add('active');
+                btn.onclick = () => showQuestion(i);
+                grid.appendChild(btn);
+            });
+        }
+
+        function finishQuiz(auto = false) {
+            const answeredCount = Object.keys(userAnswers).length;
+            if (!auto && answeredCount < questions.length) {
+                if (!confirm(`لقد أجبت على ${answeredCount} من أصل ${questions.length} سؤال. هل أنت متأكد من إنهاء الاختبار؟`)) return;
+            }
+            isFinished = true; clearInterval(timer); localStorage.removeItem('virus_quiz_save_v2');
+            let correct = 0; Object.keys(userAnswers).forEach(idx => { if (userAnswers[idx] === questions[idx].a) correct++; });
+            const score = ((correct / questions.length) * 100).toFixed(1);
+            document.getElementById('result-content').innerHTML = `<p>الطالب: <strong>${studentName}</strong></p><p style="font-size: 2rem; margin: 1rem 0; color: var(--primary-color);">${score}%</p><p>الإجابات الصحيحة: ${correct} من ${questions.length}</p>`;
+            document.getElementById('result-screen').classList.remove('hidden');
+        }
+
+        function closeResult() { document.getElementById('result-screen').classList.add('hidden'); showQuestion(0); }
+
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('main-content').classList.contains('hidden')) return;
+            if (e.key === 'ArrowRight') { if (currentIndex < questions.length - 1) showQuestion(currentIndex + 1); }
+            else if (e.key === 'ArrowLeft') { if (currentIndex > 0) showQuestion(currentIndex - 1); }
+            else if (['1', '2', '3', '4'].includes(e.key)) {
+                const optIdx = parseInt(e.key) - 1;
+                const options = document.querySelectorAll('.option-btn');
+                if (options[optIdx] && !options[optIdx].disabled) options[optIdx].click();
+            }
+        });
+
+        document.getElementById('start-btn').onclick = () => startQuiz();
+        document.getElementById('next-btn').onclick = () => { if (currentIndex < questions.length - 1) showQuestion(currentIndex + 1); };
+        document.getElementById('prev-btn').onclick = () => { if (currentIndex > 0) showQuestion(currentIndex - 1); };
+        document.getElementById('finish-btn').onclick = () => finishQuiz();
+        document.getElementById('reset-btn').onclick = () => { if (confirm("هل أنت متأكد من إعادة الاختبار؟ سيتم مسح جميع إجاباتك الحالية.")) { localStorage.removeItem('virus_quiz_save_v2'); location.reload(); } };
+
+        window.onload = checkResume;
+    </script>
+</body>
+</html>

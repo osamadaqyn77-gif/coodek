@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار أخلاقيات الحاسوب - المهندس محمود حامد قريش</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+        header { background: white; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .progress-container { max-width: 1000px; margin: 0.5rem auto 0; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; }
+        #progress-bar { height: 100%; background: var(--primary-color); width: 0%; transition: width 0.3s ease; }
+        main { flex: 1; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; width: 100%; display: grid; grid-template-columns: 1fr 300px; gap: 2rem; }
+        @media (max-width: 850px) { main { grid-template-columns: 1fr; } .sidebar { order: 2; } }
+        .quiz-card { background: var(--card-bg); padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
+        .question-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-weight: 700; color: var(--primary-color); }
+        .question-text { font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; line-height: 1.8; }
+        .options-grid { display: grid; gap: 1rem; }
+        .option-btn { background: white; border: 2px solid var(--border-color); padding: 1rem 1.5rem; border-radius: 0.75rem; cursor: pointer; text-align: right; font-size: 1.1rem; transition: all 0.2s; display: flex; align-items: center; gap: 1rem; position: relative; }
+        .option-btn:hover:not(:disabled) { border-color: var(--secondary-color); background: #eff6ff; }
+        .option-btn.selected { border-color: var(--primary-color); background: #eff6ff; }
+        .option-btn.correct { border-color: var(--success-color); background: #ecfdf5; color: #065f46; }
+        .option-btn.wrong { border-color: var(--error-color); background: #fef2f2; color: #991b1b; }
+        .option-badge { width: 30px; height: 30px; background: var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+        .option-btn.correct .option-badge { background: var(--success-color); color: white; }
+        .option-btn.wrong .option-badge { background: var(--error-color); color: white; }
+        .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+        .stats-card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+        .stat-item { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-weight: 500; }
+        .stat-value { font-weight: 700; }
+        .stat-correct { color: var(--success-color); }
+        .stat-wrong { color: var(--error-color); }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .nav-btn { aspect-ratio: 1; border: 1px solid var(--border-color); background: white; border-radius: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+        .nav-btn:hover { background: var(--bg-color); }
+        .nav-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .nav-btn.answered-correct { background: var(--success-color); color: white; border-color: var(--success-color); }
+        .nav-btn.answered-wrong { background: var(--error-color); color: white; border-color: var(--error-color); }
+        .controls { display: flex; justify-content: space-between; margin-top: 2rem; gap: 1rem; }
+        .btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-outline:hover { background: var(--bg-color); }
+        .btn-danger { background: var(--error-color); color: white; }
+        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+        .modal { background: white; padding: 2.5rem; border-radius: 1.5rem; max-width: 500px; width: 100%; text-align: center; }
+        .input-group { margin: 1.5rem 0; text-align: right; }
+        .input-group label { display: block; margin-bottom: 0.5rem; font-weight: 700; }
+        input[type="text"], select { width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 0.5rem; font-size: 1rem; outline: none; }
+        footer { text-align: center; padding: 2rem; color: var(--text-muted); font-weight: 600; border-top: 1px solid var(--border-color); background: white; margin-top: auto; }
+        .hidden { display: none !important; }
+        .kb-hints { margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: center; gap: 1rem; }
+        .kb-key { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <h2 id="quiz-title">اختبار أخلاقيات الحاسوب</h2>
+            <a href="index.html" style="display:block;margin-top:15px;padding:12px;background:#007bff;color:white;text-align:center;border-radius:10px;text-decoration:none;">🚀 الانتقال إلى الصفحة الرئيسية</a>
+            <div id="timer-display" class="stat-value" style="font-size: 1.2rem; color: var(--error-color);"></div>
+        </div>
+        <div class="progress-container"><div id="progress-bar"></div></div>
+    </header>
+
+    <main id="main-content" class="hidden">
+        <div class="content-area">
+            <div class="quiz-card">
+                <div class="question-header"><span id="q-type"></span><span id="q-number"></span></div>
+                <div id="question-text" class="question-text"></div>
+                <div id="options-container" class="options-grid"></div>
+                <div class="controls">
+                    <button id="prev-btn" class="btn btn-outline">السابق (←)</button>
+                    <button id="reset-btn" class="btn btn-danger">إعادة الاختبار</button>
+                    <button id="next-btn" class="btn btn-primary">التالي (→)</button>
+                    <button id="finish-btn" class="btn btn-success hidden" style="background: var(--success-color); color: white;">إنهاء الاختبار</button>
+                </div>
+                <div class="kb-hints">
+                    <span><span class="kb-key">←</span> السابق</span>
+                    <span><span class="kb-key">→</span> التالي</span>
+                    <span><span class="kb-key">1-4</span> للإجابة</span>
+                </div>
+            </div>
+        </div>
+        <aside class="sidebar">
+            <div class="stats-card">
+                <div class="stat-item">الطالب: <span id="display-name" class="stat-value"></span></div>
+                <div class="stat-item">الإجابات الصحيحة: <span id="correct-count" class="stat-value stat-correct">0</span></div>
+                <div class="stat-item">الإجابات الخاطئة: <span id="wrong-count" class="stat-value stat-wrong">0</span></div>
+                <div class="stat-item">الأسئلة المتبقية: <span id="remaining-count" class="stat-value">0</span></div>
+            </div>
+            <div class="stats-card">
+                <div style="margin-bottom: 1rem; font-weight: 700;">خريطة الأسئلة</div>
+                <div id="nav-grid" class="nav-grid"></div>
+            </div>
+        </aside>
+    </main>
+
+    <div id="start-screen" class="overlay">
+        <div class="modal">
+            <h1 style="color: var(--primary-color); margin-bottom: 1rem;">أهلاً بك في الاختبار</h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">اختبار شامل في مادة أخلاقيات الحاسوب (60 سؤالاً)</p>
+            <div class="input-group">
+                <label>اسم الطالب:</label>
+                <input type="text" id="student-name" placeholder="أدخل اسمك هنا...">
+            </div>
+            <div class="input-group">
+                <label>مدة الاختبار:</label>
+                <select id="quiz-duration">
+                    <option value="0">بدون مؤقت</option>
+                    <option value="15">15 دقيقة</option>
+                    <option value="30">30 دقيقة</option>
+                    <option value="60">ساعة واحدة</option>
+                </select>
+            </div>
+            <button id="start-btn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">ابدأ الاختبار الآن</button>
+            <a href="index.html" style="display:block;margin-top:15px;padding:12px;background:#007bff;color:white;text-align:center;border-radius:10px;text-decoration:none;">🚀 الانتقال إلى الصفحة الرئيسية</a>            
+            <div id="resume-msg" class="hidden" style="margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; color: #166534; font-weight: bold; cursor: pointer;">
+                لديك اختبار سابق غير مكتمل، انقر هنا للمتابعة من حيث توقفت
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="overlay hidden">
+        <div class="modal" style="max-width: 600px;">
+            <h2 style="color: var(--primary-color);">نتيجة الاختبار</h2>
+            <div id="result-content" style="margin: 2rem 0; font-size: 1.2rem;"></div>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button onclick="location.reload()" class="btn btn-primary">إعادة الاختبار</button>
+                <button onclick="closeResult()" class="btn btn-outline">مراجعة الإجابات</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>تطوير المهندس محمود حامد قريش</footer>
+
+    <script>
+        const rawQuestions = [
+            { type: 'tf', q: "يكون العقد سارياً إذا كان صالحاً بموجب قانون مكان إقامة الفريق الذي يرغب بتنفيذ العقد.", a: "صح" },
+            { type: 'tf', q: "العقود الإلكترونية هي عقود يتم إبرامها وجهاً لوجه دون الحاجة لشبكة الإنترنت.", a: "خطأ" },
+            { type: 'tf', q: "عقود (Click & type) هي العقود التي تتم بمجرد الضغط على أيقونة مربعة أو مستطيلة.", a: "خطأ" },
+            { type: 'tf', q: "من أهداف عقد الترخيص منح المستخدم إذنًا باستخدام البرنامج استخداماً قانونياً.", a: "صح" },
+            { type: 'tf', q: "ليس من الضروري توفير خيارات الرفض والقبول لضمان صحة العقد الإلكتروني.", a: "خطأ" },
+            { type: 'tf', q: "تعتبر السرعة والدقة من مزايا العقود الإلكترونية.", a: "صح" },
+            { type: 'tf', q: "التجارة الإلكترونية هي نظام يتيح حركات بيع وشراء السلع والخدمات والمعلومات عبر الإنترنت.", a: "صح" },
+            { type: 'tf', q: "يرمز مصطلح (Business-to-consumer) إلى التجارة الإلكترونية من الشركات إلى الشركات.", a: "خطأ" },
+            { type: 'tf', q: "من فوائد التجارة الإلكترونية للشركات تخفيض مصاريف الشركات.", a: "صح" },
+            { type: 'tf', q: "تساهم التجارة الإلكترونية في نيل رضا المستخدم وتوفير الوقت والجهد له.", a: "صح" },
+            { type: 'tf', q: "تعتبر سرقة معلومات بطاقة الائتمان من مخاطر التعامل مع التجارة الإلكترونية.", a: "صح" },
+            { type: 'tf', q: "ينصح بتفعيل خاصية الدخول التلقائي للموقع لزيادة الأمان أثناء التجارة الإلكترونية.", a: "خطأ" },
+            { type: 'tf', q: "يوفر بروتوكول SSL سمة 'سلامة البيانات' لضمان سرية المعلومات.", a: "صح" },
+            { type: 'tf', q: "التوقيع الرقمي هو عبارة عن جزء كبير غير مشفر يضاف إلى الرسالة الإلكترونية.", a: "خطأ" },
+            { type: 'tf', q: "وظيفة التوقيع الرقمي هي إثبات هوية الشخص الذي وقع الوثيقة الإلكترونية.", a: "صح" },
+            { type: 'tf', q: "تندرج براءة الاختراع وحقوق المؤلف تحت فئة حقوق الملكية الفكرية.", a: "صح" },
+            { type: 'tf', q: "البرمجيات بصفة عامة تنتمي لفئتي حق المؤلف وبراءة الاختراع.", a: "صح" },
+            { type: 'tf', q: "يسمى التعدي على حقوق النسخ بـ 'الخرق'، ويتم معالجته عادة في القضاء المدني.", a: "صح" },
+            { type: 'tf', q: "مدة حماية حقوق النسخ للأفراد في دول الأعضاء هي حياة المؤلف و20 عاماً بعدها.", a: "خطأ" },
+            { type: 'tf', q: "تمنح براءة الاختراع للمخترع لفترة زمنية محددة وبشكل رسمي.", a: "صح" },
+            { type: 'tf', q: "يمكن لمالك براءة الاختراع منع الغير من صناعة أو بيع اختراعه لأغراض تجارية دون موافقته.", a: "صح" },
+            { type: 'tf', q: "تمتد مدة حماية براءة الاختراع لـ 50 عاماً من تاريخ إيداع الطلب.", a: "خطأ" },
+            { type: 'tf', q: "يمكن منح براءة اختراع لمنتج جديد أو طريقة جديدة أو تحسين منتج.", a: "صح" },
+            { type: 'tf', q: "مصطلح 'البرمجيات' (Software) أعم وأشمل من مصطلح 'البرنامج' (Program).", a: "صح" },
+            { type: 'tf', q: "'برنامج الهدف' هو البرنامج المكتوب باللغة التي يفهمها الإنسان أثناء البرمجة.", a: "خطأ" },
+            { type: 'tf', q: "تفاوت معدلات قرصنة البرمجيات حول العالم يعتمد على قوة قوانين الملكية الفكرية.", a: "صح" },
+            { type: 'tf', q: "يعتبر 'التعدي من خلال شبكة الإنترنت' أحدث أنواع التعدي على البرمجيات.", a: "صح" },
+            { type: 'tf', q: "من آثار القرصنة على المستهلك عدم الاهتمام بالصيانة أو التحديث.", a: "صح" },
+            { type: 'tf', q: "العلامة التجارية هي رمز أو شعار تستعمله الشركات لتمييز منتجاتها عن غيرها.", a: "صح" },
+            { type: 'tf', q: "التشهير هو إصدار عبارات علنية شفهية أو كتابية من شأنها أن تسيء إلى سمعة شخص أو تحط من مقامه في نظر المجتمع ككل.", a: "صح" },
+            { type: 'mc', q: "العقد الذي يتم بطباعة عبارة تفيد القبول يسمى:", options: ["عقد الأيقونة.", "عقد (Click & type).", "عقد شفهي.", "عقد تجاري عام."], a: "عقد (Click & type)." },
+            { type: 'mc', q: "أي مما يلي ليس من أهداف عقد الترخيص:", options: ["وضع ضوابط وشروط الاستخدام.", "تحديد المقابل المادي للترخيص.", "منع المستخدم من فتح البرنامج نهائياً.", "منح إذن بالاستخدام القانوني."], a: "منع المستخدم من فتح البرنامج نهائياً." },
+            { type: 'mc', q: "من شروط صحة العقد الإلكتروني:", options: ["أن يكون صعب القراءة.", "توفير وسائل الأمان.", "عدم استخدام وسائل التعريف بالشخصية.", "إلغاء خيار الرفض."], a: "توفير وسائل الأمان." },
+            { type: 'mc', q: "التجارة الإلكترونية من الشركات إلى الزبائن الأفراد تسمى:", options: ["Business-to-Business.", "Consumer-to-Consumer.", "Business-to-consumer.", "Government-to-Business."], a: "Business-to-consumer." },
+            { type: 'mc', q: "تواصل الشركات الفعال مع الشركاء والعملاء يعتبر من فوائد التجارة الإلكترونية لـ:", options: ["الزبائن فقط.", "الشركات.", "المبرمجين.", "القضاء."], a: "الشركات." },
+            { type: 'mc', q: "من طرق الحماية أثناء التعامل مع التجارة الإلكترونية:", options: ["تعطيل الكوكيز (Cookies).", "استخدام متصفح قديم.", "تفعيل الجافا دائماً.", "مشاركة كلمة المرور."], a: "تعطيل الكوكيز (Cookies)." },
+            { type: 'mc', q: "يوفر بروتوكول SSL لضمان سرية المعلومات السمات التالية عدا:", options: ["التوثيق.", "سلامة البيانات.", "التشفير.", "سرعة التحميل."], a: "سرعة التحميل." },
+            { type: 'mc', q: "أي من الحقوق التالية يندرج تحت 'الحقوق الحصرية' لحقوق النسخ والتأليف:", options: ["حق االاشتقاق (التكييف).", "حق استخدام البرنامج بدون رخصة.", "حق السرقة.", "حق إتلاف النسخة الأصلية."], a: "حق االاشتقاق (التكييف)." },
+            { type: 'mc', q: "مدة حماية حقوق النسخ للشركات والأشخاص المجهولين هي:", options: ["20 عاماً بعد النشر.", "95 عاماً بعد النشر أو 120 عاماً بعد الإنتاج.", "مدى الحياة فقط.", "50 عاماً بعد الوفاة."], a: "95 عاماً بعد النشر أو 120 عاماً بعد الإنتاج." },
+            { type: 'mc', q: "النوع من الحماية الذي توفره براءة الاختراع يتيح للمالك:", options: ["استيراد الاختراع دون رخصة.", "ترخيص الاختراع للغير للقيام بأعمال الاستغلال.", "منع الدولة من الاطلاع عليه.", "استخدامه للأغراض غير القانونية."], a: "ترخيص الاختراع للغير للقيام بأعمال الاستغلال." },
+            { type: 'mc', q: "يشترط لمنح براءة الاختراع أن يكون الاختراع:", options: ["قديماً ومعروفاً.", "جديداً وابتكارياً وقابلاً للتطبيق الصناعي.", "نظرياً فقط بدون تطبيق.", "مقتبساً من اختراع آخر بالكامل."], a: "جديداً وابتكارياً وقابلاً للتطبيق الصناعي." },
+            { type: 'mc', q: "المواد التي تسبق إنتاج البرنامج مثل الخوارزميات والرسوم البيانية تعتبر:", options: ["جزءاً من مفهوم البرمجيات (Software).", "برنامج هدف.", "علامة تجارية.", "براءة اختراع مستقلة."], a: "جزءاً من مفهوم البرمجيات (Software)." },
+            { type: 'mc', q: "يطلق على كتيب الإرشادات الذي يشرح البرنامج اسم:", options: ["برنامج المصدر.", "وثائق ومواد مساندة.", "رخصة استخدام.", "خوارزمية البحث."], a: "وثائق ومواد مساندة." },
+            { type: 'mc', q: "البرنامج المكتوب بلغة الآلة والذي يتم تثبيته على الحاسوب يسمى:", options: ["برنامج المصدر.", "برنامج الهدف.", "برنامج الوسيط.", "لغة البرمجة."], a: "برنامج الهدف." },
+            { type: 'mc', q: "من العوامل التي تؤدي لتفاوت معدلات قرصنة البرمجيات:", options: ["توافر البرمجيات المقرصنة والسمات الثقافية.", "لون واجهة البرنامج.", "حجم القرص الصلب.", "سرعة المعالج."], a: "توافر البرمجيات المقرصنة والسمات الثقافية." },
+            { type: 'mc', q: "'تحميل البرامج على أجهزة الحاسب' لإعادة بيعها يعتبر نوعاً من:", options: ["التعدي المثل للمثل.", "أنواع التعدي على البرمجيات.", "حماية الملكية الفكرية.", "التجارة المشروعة."], a: "أنواع التعدي على البرمجيات." },
+            { type: 'mc', q: "من مستويات قرصنة البرمجيات:", options: ["استخدام التصاميم أو الكتل البرمجية المصدرية.", "شراء النسخة الأصلية.", "تحديث البرنامج من الموقع الرسمي.", "التواصل مع الدعم الفني."], a: "استخدام التصاميم أو الكتل البرمجية المصدرية." },
+            { type: 'mc', q: "تؤدي قرصنة البرمجيات إلى:", options: ["زيادة أرباح الشركات المصنعة.", "ضياع فرص الربح وهجرة الكوادر.", "تشجيع الاستثمار الرقمي المحلي.", "تحسين جودة البرامج."], a: "ضياع فرص الربح وهجرة الكوادر." },
+            { type: 'mc', q: "من إيجابيات حقوق الملكية الفكرية لبرمجيات الحاسب:", options: ["تحقيق التقدم وبناء كوادر وطنية مؤهلة.", "احتكار العلم ومنعه عن الناس.", "تقليل الابتكار.", "زيادة أسعار البرامج بشكل مبالغ فيه."], a: "تحقيق التقدم وبناء كوادر وطنية مؤهلة." },
+            { type: 'mc', q: "شروط تسجيل العلامة التجارية أن تكون:", options: ["قديمة ومقلدة.", "جديدة ومميزة ومشروعة.", "غير واضحة.", "تابعة لشركة حكومية حصراً."], a: "جديدة ومميزة ومشروعة." },
+            { type: 'mc', q: "يجوز شطب العلامة التجارية إذا لم تستخدم لمدة متواصلة لا تقل عن:", options: ["سنة واحدة.", "ثلاث سنوات.", "عشر سنوات.", "ستة أشهر."], a: "ثلاث سنوات." },
+            { type: 'mc', q: "'اسم النطاق' (Domain Name) هو:", options: ["شفرة سرية للبرنامج.", "عنوان على الإنترنت يتم تصميمه لتمكين المستخدمين من إيجاد الموقع بسهولة.", "اسم المبرمج الذي صنع الموقع.", "نوع من أنواع التشفير."], a: "عنوان على الإنترنت يتم تصميمه لتمكين المستخدمين من إيجاد الموقع بسهولة." },
+            { type: 'mc', q: "في مستويات أسماء النطاق، يعتبر المستوى الثاني (SLD) هو:", options: [".COM", "NAME", "WWW", "HTTP"], a: "NAME" },
+            { type: 'mc', q: "اسم النطاق الذي يستخدم للمؤسسات التعليمية مثل الجامعات هو:", options: [".Gov", ".Edu", ".Mil", ".Net"], a: ".Edu" },
+            { type: 'mc', q: "من الفروقات بين العلامة التجارية واسم الموقع:", options: ["العلامة التجارية لا يمكن وجودها دولياً.", "يمكن وجود أكثر من اسم واحد للموقع لنفس الجهة.", "لا يمكن إيجاد أكثر من اسم واحد للموقع، بينما يمكن تسجيل نفس العلامة التجارية لأصناف مختلفة.", "لا يوجد أي فرق بينهما."], a: "لا يمكن إيجاد أكثر من اسم واحد للموقع، بينما يمكن تسجيل نفس العلامة التجارية لأصناف مختلفة." },
+            { type: 'mc', q: "أحد أسباب انتشار ظاهرة التشهير عبر الإنترنت هو:", options: ["قلة عدد مستخدمي الإنترنت.", "سهولة الوصول لعدد كبير من الناس وصعوبة التعرف على الناشر.", "وجود جهة عالمية واحدة تتحكم في الإنترنت.", "قوة القوانين الموحدة في كل الدول."], a: "سهولة الوصول لعدد كبير من الناس وصعوبة التعرف على الناشر." },
+            { type: 'mc', q: "يعتبر 'التشويه والمنافسة والاستغلال' من:", options: ["فوائد الإنترنت.", "أسباب التشهير.", "مزايا التجارة الإلكترونية.", "شروط براءة الاختراع."], a: "أسباب التشهير." },
+            { type: 'mc', q: "تعريف 'إصدار عبارات علنية شفهية أو كتابية تسيء لسمعة شخص' هو تعريف لـ:", options: ["القرصنة.", "التشهير.", "الملكية الفكرية.", "الترخيص."], a: "التشهير." },
+            { type: 'mc', q: "العقود التي تتم بمجرد الضغط على أيقونة تسمى:", options: ["icon Clicking.", "Paper contracts.", "Oral contracts.", "click & type."], a: "icon Clicking." },
+            { type: 'mc', q: "السمة التي تضمن عدم تغيير البيانات أثناء انتقالها عبر الإنترنت هي:", options: ["التوثيق.", "سلامة البيانات.", "السرعة.", "التشفير."], a: "سلامة البيانات." }
+        ];
+
+        let questions = []; let currentIndex = 0; let userAnswers = {}; let studentName = ""; let timer = null; let timeLeft = 0; let isFinished = false;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initQuiz() {
+            const tf = rawQuestions.filter(q => q.type === 'tf');
+            const mc = rawQuestions.filter(q => q.type === 'mc');
+            questions = [...shuffle(tf), ...shuffle(mc)];
+            questions.forEach(q => {
+                if (q.type === 'mc') q.shuffledOptions = shuffle([...q.options]);
+                else q.shuffledOptions = ["صح", "خطأ"];
+            });
+        }
+
+        function checkResume() {
+            const saved = localStorage.getItem('ethics_quiz_save_v2');
+            if (saved) {
+                document.getElementById('resume-msg').classList.remove('hidden');
+                document.getElementById('resume-msg').onclick = () => {
+                    const data = JSON.parse(saved);
+                    studentName = data.name;
+                    userAnswers = data.answers;
+                    timeLeft = data.timeLeft;
+                    questions = data.questions;
+                    currentIndex = data.currentIndex || 0;
+                    startQuiz(true);
+                };
+            }
+        }
+
+        function startQuiz(isResume = false) {
+            if (!isResume) {
+                studentName = document.getElementById('student-name').value.trim();
+                if (!studentName) { alert("يرجى إدخال اسمك للبدء"); return; }
+                const duration = parseInt(document.getElementById('quiz-duration').value);
+                timeLeft = duration * 60;
+                initQuiz();
+            }
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('display-name').textContent = studentName;
+            if (timeLeft > 0) startTimer();
+            updateStats();
+            renderNavGrid();
+            showQuestion(currentIndex);
+        }
+
+        function startTimer() {
+            if (timer) clearInterval(timer);
+            timer = setInterval(() => {
+                if (timeLeft <= 0) { clearInterval(timer); finishQuiz(true); return; }
+                timeLeft--;
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                document.getElementById('timer-display').textContent = `الوقت المتبقي: ${mins}:${secs.toString().padStart(2, '0')}`;
+                saveProgress();
+            }, 1000);
+        }
+
+        function saveProgress() {
+            if (isFinished) return;
+            const data = { name: studentName, answers: userAnswers, timeLeft: timeLeft, questions: questions, currentIndex: currentIndex };
+            localStorage.setItem('ethics_quiz_save_v2', JSON.stringify(data));
+        }
+
+        function showQuestion(index) {
+            currentIndex = index;
+            const q = questions[index];
+            document.getElementById('q-number').textContent = `سؤال ${index + 1} من ${questions.length}`;
+            document.getElementById('q-type').textContent = q.type === 'tf' ? "صح أم خطأ" : "اختيار من متعدد";
+            document.getElementById('question-text').textContent = q.q;
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.shuffledOptions.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                if (userAnswers[index] === opt) btn.classList.add('selected');
+                if (userAnswers[index] !== undefined) {
+                    if (opt === q.a) btn.classList.add('correct');
+                    else if (userAnswers[index] === opt) btn.classList.add('wrong');
+                    btn.disabled = true;
+                }
+                btn.innerHTML = `<span class="option-badge">${i + 1}</span> <span>${opt}</span>`;
+                btn.onclick = () => handleAnswer(opt);
+                container.appendChild(btn);
+            });
+            document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === index));
+            const progress = ((Object.keys(userAnswers).length) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('prev-btn').disabled = index === 0;
+            document.getElementById('next-btn').classList.toggle('hidden', index === questions.length - 1);
+            document.getElementById('finish-btn').classList.toggle('hidden', index !== questions.length - 1);
+            saveProgress();
+        }
+
+        function handleAnswer(selected) {
+            if (userAnswers[currentIndex] !== undefined || isFinished) return;
+            userAnswers[currentIndex] = selected;
+            updateStats();
+            showQuestion(currentIndex);
+            if (currentIndex < questions.length - 1) {
+                setTimeout(() => { if (currentIndex < questions.length - 1) showQuestion(currentIndex + 1); }, 1000);
+            }
+        }
+
+        function updateStats() {
+            let correct = 0; let wrong = 0;
+            Object.keys(userAnswers).forEach(idx => { if (userAnswers[idx] === questions[idx].a) correct++; else wrong++; });
+            document.getElementById('correct-count').textContent = correct;
+            document.getElementById('wrong-count').textContent = wrong;
+            document.getElementById('remaining-count').textContent = questions.length - Object.keys(userAnswers).length;
+            renderNavGrid();
+        }
+
+        function renderNavGrid() {
+            const grid = document.getElementById('nav-grid');
+            grid.innerHTML = '';
+            questions.forEach((_, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'nav-btn';
+                btn.textContent = i + 1;
+                if (userAnswers[i] !== undefined) {
+                    if (userAnswers[i] === questions[i].a) btn.classList.add('answered-correct');
+                    else btn.classList.add('answered-wrong');
+                }
+                if (i === currentIndex) btn.classList.add('active');
+                btn.onclick = () => showQuestion(i);
+                grid.appendChild(btn);
+            });
+        }
+
+        function finishQuiz(auto = false) {
+            const answeredCount = Object.keys(userAnswers).length;
+            if (!auto && answeredCount < questions.length) {
+                if (!confirm(`لقد أجبت على ${answeredCount} من أصل ${questions.length} سؤال. هل أنت متأكد من إنهاء الاختبار؟`)) return;
+            }
+            isFinished = true; clearInterval(timer); localStorage.removeItem('ethics_quiz_save_v2');
+            let correct = 0; Object.keys(userAnswers).forEach(idx => { if (userAnswers[idx] === questions[idx].a) correct++; });
+            const score = ((correct / questions.length) * 100).toFixed(1);
+            document.getElementById('result-content').innerHTML = `<p>الطالب: <strong>${studentName}</strong></p><p style="font-size: 2rem; margin: 1rem 0; color: var(--primary-color);">${score}%</p><p>الإجابات الصحيحة: ${correct} من ${questions.length}</p>`;
+            document.getElementById('result-screen').classList.remove('hidden');
+        }
+
+        function closeResult() { document.getElementById('result-screen').classList.add('hidden'); showQuestion(0); }
+
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('main-content').classList.contains('hidden')) return;
+            if (e.key === 'ArrowRight') { if (currentIndex < questions.length - 1) showQuestion(currentIndex + 1); }
+            else if (e.key === 'ArrowLeft') { if (currentIndex > 0) showQuestion(currentIndex - 1); }
+            else if (['1', '2', '3', '4'].includes(e.key)) {
+                const optIdx = parseInt(e.key) - 1;
+                const options = document.querySelectorAll('.option-btn');
+                if (options[optIdx] && !options[optIdx].disabled) options[optIdx].click();
+            }
+        });
+
+        document.getElementById('start-btn').onclick = () => startQuiz();
+        document.getElementById('next-btn').onclick = () => { if (currentIndex < questions.length - 1) showQuestion(currentIndex + 1); };
+        document.getElementById('prev-btn').onclick = () => { if (currentIndex > 0) showQuestion(currentIndex - 1); };
+        document.getElementById('finish-btn').onclick = () => finishQuiz();
+        document.getElementById('reset-btn').onclick = () => { if (confirm("هل أنت متأكد من إعادة الاختبار؟ سيتم مسح جميع إجاباتك الحالية.")) { localStorage.removeItem('ethics_quiz_save_v2'); location.reload(); } };
+
+        window.onload = checkResume;
+    </script>
+</body>
+</html>
